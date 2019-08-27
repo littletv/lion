@@ -1,5 +1,4 @@
-/* eslint-disable no-empty-function */
-/* eslint-disable class-methods-use-this */
+import { render } from '@lion/core';
 
 /**
  * This is the interface for a controller
@@ -26,7 +25,26 @@ export class BaseOverlayController {
   }
 
   set contentTemplate(value) {
+    if (typeof value !== 'function') {
+      throw new Error('.contentTemplate needs to be a function');
+    }
     this.__contentTemplate = value;
+    if (!this.content) {
+      this.content = document.createElement('div');
+    }
+    this.__renderTemplate();
+  }
+
+  get contentData() {
+    return this.__contentData;
+  }
+
+  set contentData(value) {
+    if (!this.contentTemplate) {
+      throw new Error('.contentData can only be used if there is a .contentTemplate function');
+    }
+    this.__contentData = value;
+    this.__renderTemplate();
   }
 
   get contentNode() {
@@ -35,22 +53,60 @@ export class BaseOverlayController {
 
   set contentNode(value) {
     this.__contentNode = value;
+    this.content = value;
   }
 
-  constructor() {
+  constructor(params = {}) {
+    this.__fakeExtendsEventTarget();
     this.isShown = false;
-    // TODO: do actual setup for templates/nodes
+
+    this.__setupContent(params);
   }
 
-  async show() {}
+  async show() {
+    if (this.isShown === true) {
+      return;
+    }
+    this.isShown = true;
+    this.dispatchEvent(new Event('show'));
+  }
 
-  async hide() {}
+  async hide() {
+    if (this.isShown === false) {
+      return;
+    }
+    this.isShown = false;
+    this.dispatchEvent(new Event('hide'));
+  }
 
-  sync() {}
-
-  syncInvoker() {}
-
+  // eslint-disable-next-line class-methods-use-this
   switchIn() {}
 
+  // eslint-disable-next-line class-methods-use-this
   switchOut() {}
+
+  __setupContent(params) {
+    if (params.contentTemplate && params.contentNode) {
+      throw new Error('You can only provide a .contentTemplate or a .contentNode but not both');
+    }
+    if (params.contentTemplate) {
+      this.contentTemplate = params.contentTemplate;
+    }
+    if (params.contentNode) {
+      this.contentNode = params.contentNode;
+    }
+  }
+
+  __renderTemplate() {
+    render(this.contentTemplate(this.contentData), this.content);
+    this.__contentNode = this.content.firstElementChild;
+  }
+
+  // TODO: this method has to be removed when EventTarget polyfill is available on IE11
+  __fakeExtendsEventTarget() {
+    const delegate = document.createDocumentFragment();
+    ['addEventListener', 'dispatchEvent', 'removeEventListener'].forEach(funcName => {
+      this[funcName] = (...args) => delegate[funcName](...args);
+    });
+  }
 }

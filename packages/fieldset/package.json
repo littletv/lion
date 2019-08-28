@@ -40,7 +40,7 @@
     "@lion/input": "^0.1.48",
     "@lion/localize": "^0.4.13",
     "@open-wc/demoing-storybook": "^0.2.0",
-    "@open-wc/testing": "^2.0.6",
+    "@open-wc/testing": "^2.3.3",
     "sinon": "^7.2.2"
   }
 }

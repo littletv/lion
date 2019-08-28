@@ -1,4 +1,4 @@
-import { render } from '@lion/core';
+import { render, html } from '@lion/core';
 
 /**
  * This is the interface for a controller
@@ -32,7 +32,7 @@ export class BaseOverlayController {
     if (!this.content) {
       this.content = document.createElement('div');
     }
-    this.__renderTemplate();
+    this.__handleContentTemplate();
   }
 
   get contentData() {
@@ -44,7 +44,7 @@ export class BaseOverlayController {
       throw new Error('.contentData can only be used if there is a .contentTemplate function');
     }
     this.__contentData = value;
-    this.__renderTemplate();
+    this.__handleContentTemplate();
   }
 
   get contentNode() {
@@ -68,6 +68,7 @@ export class BaseOverlayController {
       return;
     }
     this.isShown = true;
+    this.__handleShowChange();
     this.dispatchEvent(new Event('show'));
   }
 
@@ -76,6 +77,7 @@ export class BaseOverlayController {
       return;
     }
     this.isShown = false;
+    this.__handleShowChange();
     this.dispatchEvent(new Event('hide'));
   }
 
@@ -97,9 +99,37 @@ export class BaseOverlayController {
     }
   }
 
-  __renderTemplate() {
-    render(this.contentTemplate(this.contentData), this.content);
-    this.__contentNode = this.content.firstElementChild;
+  __handleShowChange() {
+    if (this.contentTemplate) {
+      this.__handleContentTemplate();
+    } else {
+      this.__handleContentNode();
+    }
+  }
+
+  __handleContentTemplate() {
+    if (!this.content || !this.contentTemplate) {
+      return;
+    }
+
+    if (this.isShown) {
+      render(this.contentTemplate(this.contentData), this.content);
+      this.__contentNode = this.content.firstElementChild;
+    } else {
+      render(html``, this.content);
+      this.__contentNode = undefined;
+    }
+  }
+
+  __handleContentNode() {
+    if (!this.content) {
+      return;
+    }
+    if (this.isShown) {
+      this.content.style.display = 'inline-block';
+    } else {
+      this.content.style.display = 'none';
+    }
   }
 
   // TODO: this method has to be removed when EventTarget polyfill is available on IE11

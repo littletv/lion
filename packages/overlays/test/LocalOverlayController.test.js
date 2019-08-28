@@ -10,8 +10,15 @@ import { simulateTab } from '../src/utils/simulate-tab.js';
 import { LocalOverlayController } from '../src/LocalOverlayController.js';
 
 import { overlays } from '../src/overlays.js';
+import { runBaseOverlaySuite } from '../test-suites/BaseOverlayController.suite.js';
 
 describe('LocalOverlayController', () => {
+  describe('extends BaseOverlayController', () => {
+    runBaseOverlaySuite((...args) => new LocalOverlayController(...args), {
+      name: 'BaseOverlayController',
+    });
+  });
+
   describe('templates', () => {
     it('creates a controller with methods: show, hide, sync and syncInvoker', () => {
       const controller = new LocalOverlayController({

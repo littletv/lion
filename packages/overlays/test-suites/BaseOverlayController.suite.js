@@ -50,7 +50,7 @@ export const runBaseOverlaySuite = (generateCtrl, { name }) => {
         const ctrl = generateCtrl({
           contentTemplate: () => html``,
         });
-        expect(ctrl.content).dom.to.equal('<div></div>');
+        expect(ctrl.content.tagName).to.equal('DIV');
       });
 
       it('throws if trying to assign a non function value to .contentTemplate', () => {
@@ -60,13 +60,14 @@ export const runBaseOverlaySuite = (generateCtrl, { name }) => {
         }).to.throw('.contentTemplate needs to be a function');
       });
 
-      it('has .contentTemplate<Function> to render into .content', () => {
+      it('has .contentTemplate<Function> to render into .content', async () => {
         const ctrl = generateCtrl({
           contentTemplate: () => html`
             <p>my content</p>
           `,
         });
-        expect(ctrl.content).dom.to.equal('<div><p>my content</p></div>');
+        await ctrl.show();
+        expect(ctrl.content).lightDom.to.equal('<p>my content</p>');
       });
 
       it('has .contentData which triggers a updates of the overlay content', () => {
@@ -75,10 +76,23 @@ export const runBaseOverlaySuite = (generateCtrl, { name }) => {
             <p>my content - ${username}</p>
           `,
         });
-        expect(ctrl.content).dom.to.equal('<div><p>my content - default user</p></div>');
+        ctrl.show();
+        expect(ctrl.content).lightDom.to.equal('<p>my content - default user</p>');
 
         ctrl.contentData = { username: 'foo user' };
-        expect(ctrl.content).dom.to.equal('<div><p>my content - foo user</p></div>');
+        expect(ctrl.content).lightDom.to.equal('<p>my content - foo user</p>');
+      });
+
+      it('removes dom content on hide', async () => {
+        const ctrl = generateCtrl({
+          contentTemplate: () => html`
+            <p>my content</p>
+          `,
+        });
+        await ctrl.show();
+        expect(ctrl.content).lightDom.to.equal('<p>my content</p>');
+        await ctrl.hide();
+        expect(ctrl.content).lightDom.to.equal('');
       });
     });
 
@@ -95,6 +109,21 @@ export const runBaseOverlaySuite = (generateCtrl, { name }) => {
         expect(() => {
           ctrl.contentData = {};
         }).to.throw('.contentData can only be used if there is a .contentTemplate');
+      });
+
+      it('hides .contentNode via css on hide', async () => {
+        const ctrl = generateCtrl({
+          contentNode: await fixture('<p>direct node</p>'),
+        });
+
+        await ctrl.show();
+        expect(ctrl.content).to.be.displayed;
+
+        await ctrl.hide();
+        expect(ctrl.content).not.to.be.displayed;
+
+        await ctrl.show();
+        expect(ctrl.content).to.be.displayed;
       });
     });
 

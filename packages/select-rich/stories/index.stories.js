@@ -6,6 +6,7 @@ import '@lion/option/lion-option.js';
 
 import '../lion-select-rich.js';
 import '../lion-options.js';
+import './select-rich-demo.js';
 
 const selectRichDemoStyle = css`
   .demo-area {
@@ -14,6 +15,14 @@ const selectRichDemoStyle = css`
 `;
 
 storiesOf('Forms|Select Rich', module)
+  .add(
+    'Dynamic options',
+    () => html`
+      <div class="demo-area">
+        <select-rich-demo></select-rich-demo>
+      </div>
+    `,
+  )
   .add(
     'Default',
     () => html`
